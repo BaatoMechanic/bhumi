@@ -1,0 +1,80 @@
+version: '3'
+services:
+  bhugol:
+    restart: always
+    # image: kartoza/geoserver:latest
+    image: kartoza/geoserver:2.22.0
+    env_file:
+      - ./.env
+    container_name: ${BHUGOL_CONTAINER_NAME}
+    volumes:
+      - ./bhugol/data:/opt/geoserver/data_dir
+    ports:
+      - ${EXPOSED_BHUGOL_PORT}:8080
+    depends_on:
+      - bhumi
+    environment:
+      - GEOSERVER_ADMIN_USER=admin
+      - GEOSERVER_ADMIN_PASSWORD=geoserver
+      - STABLE_EXTENSIONS=css-plugin
+      # - HTTP_PROXY_NAME=localhost
+    command: sh -c "app/bin/startup.sh && tail -f app/logs/geoserver.log"
+    
+    networks:
+      - bazra_network
+
+  
+
+  maarga:
+    build: ./maarga
+    image: ${MAARGA_IMAGE_NAME}
+    container_name: ${MAARGA_CONTAINER_NAME}
+    ports:
+      # - ${EXPOSED_MAARGA_PORT}:5000
+      - 5001:5000
+      
+    
+    networks:
+      - bazra_network
+
+  nominatim:
+    container_name: nominatim
+    image: mediagis/nominatim:4.3
+    ports:
+        - 8090:8080
+    environment:
+        PBF_PATH: /data/nepal-latest.osm.pbf
+        NOMINATIM_PASSWORD: very_secure_password
+        # POSTGRES_HOST: bhumi
+        # POSTGRES_DB: ${BHUMI_DATABASE_NAME}
+        # POSTGRES_USER: ${BHUMI_USER}
+        # POSTGRES_PASSWORD: ${BHUMI_PASSWORD}
+    volumes:
+        - ./nominatim_data:/data  # Mount the local directory containing your OSM PBF file
+        # - ./nominatim_data/data:/var/lib/postgresql/14/main
+    shm_size: 1gb
+    networks:
+      - bazra_network
+
+  bhumi:
+    restart: always
+    image: kartoza/postgis
+    container_name: ${BHUMI_CONTAINER_NAME}
+    ports:
+      - ${EXPOSED_BHUMI_PORT}:5432
+    volumes:
+      - ./bhumi/data:/var/lib/postgresql/:rw
+      # - ./bhumi/nepal-latest.osm.pbf:/app/nepal-latest.osm.pbf
+    environment:
+      - POSTGRES_HOST=bhumi
+      - POSTGRES_DB=${BHUMI_DATABASE_NAME}
+      - POSTGRES_USER=${BHUMI_USER}
+      - POSTGRES_PASSWORD=${BHUMI_PASSWORD}
+      - POSTGRES_PORT=5432
+    networks:
+      - bazra_network
+
+
+networks:
+  bazra_network:
+    driver: bridge
