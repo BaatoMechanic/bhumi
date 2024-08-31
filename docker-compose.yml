@@ -16,10 +16,10 @@ services:
     depends_on:
       - bhumi
     environment:
-      - GEOSERVER_ADMIN_USER=${BHUGOL_ADMIN_USER}
-      - GEOSERVER_ADMIN_PASSWORD=${BHUGOL_ADMIN_PASSWORD}
+      #- GEOSERVER_ADMIN_USER=${BHUGOL_ADMIN_USER}
+      #- GEOSERVER_ADMIN_PASSWORD=${BHUGOL_ADMIN_PASSWORD}
       - STABLE_EXTENSIONS=css-plugin,feature-pregeneralized-plugin 
-      #- USE_DEFAULT_CREDENTIALS=true
+      - USE_DEFAULT_CREDENTIALS=true # admin, geoserver
     restart: on-failure
     networks:
       - bazra_network
@@ -87,3 +87,6 @@ networks:
   bazra_network:
     driver: bridge
 
+
+
+# clone the repo (example one ;) )and then just copy the data_dir to bhugol and then do the rest

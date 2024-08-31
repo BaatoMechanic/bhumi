@@ -5,7 +5,7 @@
         <role id="GROUP_ADMIN"/>
     </roleList>
     <userList>
-        <userRoles username="adminn">
+        <userRoles username="admin">
             <roleRef roleID="ADMIN"/>
         </userRoles>
     </userList>
