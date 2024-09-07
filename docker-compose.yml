@@ -1,28 +1,43 @@
 version: '3'
 services:
 
-  bhugol:
-    image: 'kartoza/geoserver:2.25.0'
-    hostname: geoserver
-    env_file:
-      - ./.env
-    container_name: ${BHUGOL_CONTAINER_NAME}
-    volumes:
-      - './bhugol/data/:/opt/geoserver/data_dir'
-      - './bhugol/fonts/:/opt/fonts'
-    ports:
-      - ${EXPOSED_BHUGOL_PORT}:8080
+  # bhugol:
+  #   image: 'kartoza/geoserver:2.25.0'
+  #   hostname: geoserver
+  #   env_file:
+  #     - ./.env
+  #   container_name: ${BHUGOL_CONTAINER_NAME}
+  #   volumes:
+  #     - './bhugol/data/:/opt/geoserver/data_dir'
+  #     - './bhugol/fonts/:/opt/fonts'
+  #   ports:
+  #     - ${EXPOSED_BHUGOL_PORT}:8080
     
-    depends_on:
-      - bhumi
+  #   depends_on:
+  #     - bhumi
+  #   environment:
+  #     #- GEOSERVER_ADMIN_USER=${BHUGOL_ADMIN_USER}
+  #     #- GEOSERVER_ADMIN_PASSWORD=${BHUGOL_ADMIN_PASSWORD}
+  #     - STABLE_EXTENSIONS=css-plugin,feature-pregeneralized-plugin 
+  #     - USE_DEFAULT_CREDENTIALS=true # admin, geoserver
+  #   restart: on-failure
+  #   networks:
+  #     - bazra_network
+
+  bhugol:
+    build: ./bhugol
+    image: ${BHUGOL_IMAGE_NAME}
+    container_name: ${BHUGOL_CONTAINER_NAME}
+    ports:
+      - 8080:80
+    volumes:
+      - ./bhugol/data:/data  # Adjust volume mounts as needed
     environment:
-      #- GEOSERVER_ADMIN_USER=${BHUGOL_ADMIN_USER}
-      #- GEOSERVER_ADMIN_PASSWORD=${BHUGOL_ADMIN_PASSWORD}
-      - STABLE_EXTENSIONS=css-plugin,feature-pregeneralized-plugin 
-      - USE_DEFAULT_CREDENTIALS=true # admin, geoserver
-    restart: on-failure
+      - TZ=Asia/Kathmandu
     networks:
       - bazra_network
+    command: "run"
+
 
   maarga:
     build: ./maarga
@@ -41,12 +56,14 @@ services:
     environment:
       PBF_PATH: /data/selection.osm.pbf
       NOMINATIM_PASSWORD: very_secure_password
-      # POSTGRES_HOST: bhumi
-      # POSTGRES_DB: ${BHUMI_DATABASE_NAME}
-      # POSTGRES_USER: ${BHUMI_USER}
-      # POSTGRES_PASSWORD: ${BHUMI_PASSWORD}
+      POSTGRES_HOST: bhumi
+      POSTGRES_DB: ${BHUMI_DATABASE_NAME}
+      POSTGRES_USER: ${BHUMI_USER}
+      POSTGRES_PASSWORD: ${BHUMI_PASSWORD}
+    depends_on:
+      - bhumi
     volumes:
-      - ./pbf:/data  # Mount the local directory containing OSM PBF file
+      - ./pbf:/data  # Uncomment this if you need to mount the local PBF file directory
     shm_size: 1gb
     networks:
       - bazra_network
@@ -86,7 +103,6 @@ services:
 networks:
   bazra_network:
     driver: bridge
-
 
 
 # clone the repo (example one ;) )and then just copy the data_dir to bhugol and then do the rest
